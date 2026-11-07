@@ -1,0 +1,97 @@
+fix for you to use
+
+AudioInitProps.h:
+  #pragma once
+  #include "Common/CommandLineArgs.hpp"
+
+  struct AudioInitProps
+  {
+      CommandLineArgs* argv;
+      size_t argc;
+	};
+Common/CommandLineArgs.hpp:
+	#pragma once
+	#include <cstddef>
+
+	struct CommandLineArgs
+	{
+    	const char* name;
+    	size_t nameLength;
+
+    	const char* value;
+    	size_t valueLength;
+	};
+Common/PlatformDetection.hpp
+	#pragma once
+
+	// Platform detection using predefined macros
+	#ifdef __EMSCRIPTEN__
+		#define PLATFORM_WEB 1
+	#elif defined(_WIN32)
+		/* Windows x64/x86 */
+		#ifdef _WIN64
+			/* Windows x64  */
+			#define PLATFORM_WINDOWS 1
+			#include <unknwn.h>
+			#include <Windows.h>
+
+	#if defined(FILESYSTEM_EXPORTS)
+	#define FILESYSTEM_API __declspec(dllexport)
+	#else
+	#define FILESYSTEM_API __declspec(dllimport)
+	#endif
+	#if defined(ENGINE_EXPORTS)
+	#define ENGINE_API __declspec(dllexport)
+	#else
+	#define ENGINE_API __declspec(dllimport)
+	#endif
+	#if defined(Audio_EXPORTS)
+	#define Audio_API __declspec(dllexport)
+	#else
+	#define Audio_API __declspec(dllimport)
+	#endif
+		#else
+			/* Windows x86 */
+			#error "x86 Builds are not supported!"
+		#endif
+	#elif defined(__APPLE__) || defined(__MACH__)
+		#include <TargetConditionals.h>
+		/* TARGET_OS_MAC exists on all the platforms
+		 * so we must check all of them (in this order)
+		 * to ensure that we're running on MAC
+		 * and not some other Apple platform */
+		#if TARGET_IPHONE_SIMULATOR == 1
+			#error "IOS simulator is not supported!"
+		#elif TARGET_OS_IPHONE == 1
+			#define PLATFORM_IOS 1
+			#error "IOS is not supported!"
+		#elif TARGET_OS_MAC == 1
+			#define PLATFORM_MACOS 1
+			#error "MacOS is not supported!"
+		#else
+			#error "Unknown Apple platform!"
+		#endif
+	/* We also have to check __ANDROID__ before __linux__
+	 * since android is based on the linux kernel
+	 * it has __linux__ defined */
+	#elif defined(__ANDROID__)
+		#define PLATFORM_ANDROID 1
+		#error "Android is not supported!"
+	#elif defined(__linux__)
+		#define PLATFORM_LINUX 1
+	#else
+		/* Unknown compiler/platform */
+		#error "Unknown platform!"
+	#endif // End of platform detection
+
+	#ifndef ENGINE_API
+	#define ENGINE_API
+	#endif
+
+	#ifndef FILESYSTEM_API
+	#define FILESYSTEM_API
+	#endif
+
+	#ifndef Audio_API
+	#define Audio_API
+	#endif
