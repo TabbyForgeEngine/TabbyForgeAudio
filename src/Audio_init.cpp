@@ -1,6 +1,5 @@
 #include "Audio/AudioInitProps.h"
 #include "Common/PlatformDetection.hpp"
-#include "alc.h"
 #include "Audio_API.h"
 
 extern "C" {

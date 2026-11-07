@@ -13,12 +13,13 @@ endif()
 target_include_directories(Audio PUBLIC
 	"${PROJECT_SOURCE_DIR}/Utils"
 	"${PROJECT_SOURCE_DIR}/Utils/Audio"
+	"${PROJECT_SOURCE_DIR}/Utils/Filesystem"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 if(CMAKE_DL_LIBS)
-	target_link_libraries(Audio PRIVATE "${CMAKE_DL_LIBS}" nlohmann_json)
+	target_link_libraries(Audio PRIVATE "${CMAKE_DL_LIBS}" nlohmann_json Filesystem)
 else()
-	target_link_libraries(Audio PRIVATE nlohmann_json)
+	target_link_libraries(Audio PRIVATE nlohmann_json Filesystem)
 endif()
 configure_engine_target(Audio)
 if(WIN32)
@@ -27,13 +28,24 @@ else()
 copy_to_game(Audio "bin/audio.so")
 endif()
 
+include(FetchContent)
+
+FetchContent_Declare(
+	miniaudio
+	GIT_REPOSITORY https://github.com/TabbyForgeEngine/miniaudio
+	GIT_TAG master
+)
+
+FetchContent_MakeAvailable(miniaudio)
+
 if(EMSCRIPTEN)
+	target_link_libraries(Audio PRIVATE miniaudio)
+	target_link_options(Audio PRIVATE "-lopenal")
 else()
 set(LIBTYPE STATIC CACHE STRING "" FORCE)
 set(ALSOFT_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ALSOFT_UTILS OFF CACHE BOOL "" FORCE)
 set(ALSOFT_TESTS OFF CACHE BOOL "" FORCE)
-include(FetchContent)
 
 FetchContent_Declare(
     openal
@@ -42,14 +54,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(openal)
-
-FetchContent_Declare(
-    miniaudio
-    GIT_REPOSITORY https://github.com/TabbyForgeEngine/miniaudio
-    GIT_TAG master
-)
-
-FetchContent_MakeAvailable(miniaudio)
 
     target_link_libraries(Audio PRIVATE
         OpenAL miniaudio Filesystem
